@@ -1,0 +1,16 @@
+{
+  "source": "Unity",
+  "applications": [
+    {
+      "app_key": "application.generated.unity.enhance_vrdemo.exe",
+      "launch_type": "url",
+      "url": "steam://launch/",
+      "action_manifest_path": "C:\\Users\\Seiji\\Documents\\GitHub\\Enhance_VRDemo\\actions.json",
+      "strings": {
+        "en_us": {
+          "name": "Enhance_VRDemo [Testing]"
+        }
+      }
+    }
+  ]
+}
