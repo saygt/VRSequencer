@@ -49,8 +49,8 @@ public class TriggerSensor : MonoBehaviour
         return null; 
     }
 
-    public int GetCount()
+    public int GetCount( Type _type)
     {
-        return triggeringObjects.Count;
+        return triggeringObjects.Where(t => t.GetComponentInParent(_type) != null).Count();
     }
 }

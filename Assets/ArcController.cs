@@ -19,9 +19,10 @@ public class ArcController : MonoBehaviour
     void Update()
     {
         Vector3 localizedTargetPosition = target.position - owner.position;
+        Vector3 localizedOwnerPosition = owner.position;
         vfx.SetVector3("TargetPosition", target.position);
         vfx.SetVector3("OwnerPosition", owner.position);
-        transform.LookAt(target);
+//        transform.LookAt(target);
     }
 
     public void SetOwner ( Transform _owner )

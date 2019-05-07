@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.Experimental.VFX;
+using DG.Tweening;
 
 [RequireComponent(typeof(VisualEffect))]
 public class RhythmNode : BaseNode
@@ -13,19 +14,28 @@ public class RhythmNode : BaseNode
     public bool activateOnPlay = false;
     public int activationTick = 999999;
     public bool showDebug = false;
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
+    public List<AudioReactor> audioNodes = new List<AudioReactor>();
+    public VisualEffect vfx;
+    public float vfxScale = 1f;
 
     internal override void OnStart()
     {
         base.OnStart();
         DoOnTick = WaitForActivation;
         MusicManager.Instance.DoOnTick(OnTick);
+        vfx = GetComponent<VisualEffect>();
+    }
 
+    public override void Select()
+    {
+        base.Select();
+        vfx.SetInt("Mode", 1);
+    }
+
+    public override void Deselect()
+    {
+        base.Deselect();
+        vfx.SetInt("Mode", 0);
     }
 
     public override void Activate()
@@ -39,18 +49,46 @@ public class RhythmNode : BaseNode
                 rhythmNode.ActivateAtTick(MusicManager.Instance.CurrentTick() + duration);
             }
         }
+
+
+        foreach ( AudioReactor node in audioNodes)
+        {
+            node.Activate(true);
+        }
         DoOnTick = WaitForDeactivation;
-        Debug.Log("tick:" + currentTick + transform.name);
+        float durationInSeconds = MusicManager.Instance.TimePerTick()*duration;
+        float pulseDuration = 0.2f;
+        vfx.SetFloat("scale", 0.2F);
+        DOTween.Sequence()
+            .Append(DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), 0.9f, pulseDuration).SetEase(Ease.OutCubic))
+            .Append(DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), 0.2f, durationInSeconds + 0.2f).SetEase(Ease.InCubic))
+            ;
+    }
+
+    public override BaseNode Duplicate()
+    {
+
+        RhythmNode _node = Instantiate(gameObject, transform.position, transform.rotation).GetComponent<RhythmNode>();
+        _node.childNodes.Clear();
+        _node.activationTick = 9999999;
+        _node.Deactivate();
+        _node.parentTarget = this;
+        return _node;
     }
 
     public void ActivateAtTick(int _tick)
     {
         activationTick = _tick;
+        isActivated = true;
     }
 
     public override void Deactivate()
     {
         base.Deactivate();
+        foreach (AudioReactor node in audioNodes)
+        {
+            node.Activate(false);
+        }
         currentTick = 1;
         DoOnTick = WaitForActivation;
     }
@@ -65,7 +103,6 @@ public class RhythmNode : BaseNode
         }
         else
         {
-            Debug.Log("tick:" + currentTick + transform.name);
 
         }
 
@@ -78,9 +115,46 @@ public class RhythmNode : BaseNode
     {
         if (showDebug) Debug.Log(_tick);
         currentTickGlobal = _tick;
-        if(_tick == activationTick)
+
+        if( _tick == activationTick )
         {
+            Debug.Log("tick activate:" + gameObject.name);
             Activate();
+            return;
         }
+
+        // if the node has no parents, check for active child nodes and if none exists, activate itself
+        if (parentTarget == null && childNodes.Count > 0 )
+        {
+            BaseNode activeChild = GetFirstActiveChild(this);
+            if( activeChild == null )
+            {
+                Debug.Log("self activate:" + gameObject.name);
+                Activate();
+            }
+        }
+
+    }
+
+    public BaseNode GetFirstActiveChild( BaseNode _node)
+    {
+        foreach( BaseNode child in _node.childNodes)
+        {
+            Debug.Log("recursive search by" + gameObject.name + ":" + child.gameObject.name);
+            if (child.isActivated)
+            {
+                return child;
+            }
+            else
+            {
+                BaseNode activeGrandchild = GetFirstActiveChild(child);
+                if(activeGrandchild != null)
+                {
+                    return activeGrandchild;
+                }
+            }
+        }
+        Debug.Log("no active child");
+        return null;
     }
 }

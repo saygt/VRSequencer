@@ -130,12 +130,7 @@ public class AudioReactor : MonoBehaviour
 
     public void OnReactorExit(GameObject other)
     {
-        //parentTarget = null;
-        Debug.Log(connectorSensor.GetCount());
-        if(connectorSensor.GetCount() == 0)
-        {
-            Destroy(arcInstance.gameObject);
-        }
+
         //AudioReactor reactor = other.GetComponentInParent<AudioReactor>();
         //if (reactor && grabState == GrabbableState.Grabbing)
         //{
@@ -204,6 +199,6 @@ public class AudioReactor : MonoBehaviour
 
     public void ChangeColor(Color _color, string _property, float _duration)
     {
-        mat.DOColor(_color, _property, _duration);
+       // mat.DOColor(_color, _property, _duration);
     }
 }

@@ -50,4 +50,9 @@ public class MusicManager : Singleton<MusicManager>
     {
         return currentTick;
     }
+
+    public float TimePerTick()
+    {
+        return timePerTick;
+    }
 }
