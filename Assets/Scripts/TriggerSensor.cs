@@ -48,4 +48,9 @@ public class TriggerSensor : MonoBehaviour
         }
         return null; 
     }
+
+    public int GetCount()
+    {
+        return triggeringObjects.Count;
+    }
 }

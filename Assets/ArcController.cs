@@ -21,5 +21,17 @@ public class ArcController : MonoBehaviour
         Vector3 localizedTargetPosition = target.position - owner.position;
         vfx.SetVector3("TargetPosition", target.position);
         vfx.SetVector3("OwnerPosition", owner.position);
+        transform.LookAt(target);
     }
+
+    public void SetOwner ( Transform _owner )
+    {
+        owner = _owner;
+    }
+
+    public void SetTarget ( Transform _target )
+    {
+        target = _target;
+    }
+
 }

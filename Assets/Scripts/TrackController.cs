@@ -17,7 +17,7 @@ public class TrackController : MonoBehaviour
     void Start()
     {
         //containers = GetComponentsInChildren<ReactorContainer>().OrderBy(go => go.gameObject.name).ToList();
-        MusicManager.Instance.AddUpdateAction(OnTick);
+        MusicManager.Instance.DoOnTick(OnTick);
     }
 
     // Update is called once per frame
@@ -30,9 +30,9 @@ public class TrackController : MonoBehaviour
     {
         if ( tick % ticksPerContainer == 0)
         {
-            if (activeReactor) activeReactor.PlayNote(false);
+            if (activeReactor) activeReactor.Activate(false);
             activeReactor = containers[containerIndex];
-            DOVirtual.DelayedCall(delay, () => activeReactor.PlayNote(true));
+            DOVirtual.DelayedCall(delay, () => activeReactor.Activate(true));
             containerIndex = containerIndex >= containers.Count-1 ? containerIndex = 0 : containerIndex + 1 ;
         }
     }

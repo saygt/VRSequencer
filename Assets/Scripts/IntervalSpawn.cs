@@ -11,7 +11,7 @@ public class IntervalSpawn : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        MusicManager.Instance.AddUpdateAction(OnBeat);
+        MusicManager.Instance.DoOnTick(OnBeat);
     }
 
     // Update is called once per frame

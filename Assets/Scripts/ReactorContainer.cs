@@ -42,7 +42,7 @@ public class ReactorContainer : MonoBehaviour
         Debug.Log("tick ");
         foreach (AudioReactor ar in reactors)
         {
-            ar.PlayNote(true);
+            ar.Activate(true);
         }
     }
 
@@ -51,7 +51,7 @@ public class ReactorContainer : MonoBehaviour
         mat.color = defaultColor;
         foreach (AudioReactor ar in reactors)
         {
-            ar.PlayNote(false);
+            ar.Activate(false);
         }
     }
 }

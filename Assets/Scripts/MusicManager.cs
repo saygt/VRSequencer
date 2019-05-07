@@ -13,7 +13,8 @@ public class MusicManager : Singleton<MusicManager>
     private float timePerTick;
     public int ticksPerBeat = 4;
 
-    public Action<int> onUpdate = i => { };
+    public Action<int> onTick = i => { };
+    public Action<int> beforeTick = i => { };
 
     // Start is called before the first frame update
     void Start()
@@ -26,16 +27,27 @@ public class MusicManager : Singleton<MusicManager>
     void Update()
     {
         currentTime += Time.deltaTime;
-        currentTick = Mathf.FloorToInt(currentTime / (timePerTick));
-        if(currentTick != lastTick)
+        float currentTickTime = currentTime / timePerTick;
+        if(currentTickTime > lastTick+0.995f)
         {
-            onUpdate(currentTick);
+            currentTick = Mathf.RoundToInt( currentTickTime);
+            beforeTick(currentTick);
+            onTick(currentTick);
             lastTick = currentTick;
         }
     }
 
-    public void AddUpdateAction( Action<int> _action )
+    public void DoOnTick( Action<int> _action )
     {
-        onUpdate += _action;
+        onTick += _action;
+    }
+    public void DoBeforeTick( Action<int> _action )
+    {
+        beforeTick += _action;
+    }
+
+    public int CurrentTick()
+    {
+        return currentTick;
     }
 }

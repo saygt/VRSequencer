@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using DG.Tweening;
 
 public class AudioReactor : MonoBehaviour
@@ -8,6 +9,8 @@ public class AudioReactor : MonoBehaviour
     public bool canGrab = true;
     public AudioHelm.Sampler sampler;
     public AudioHelm.HelmController helm;
+    public ArcController arcPrefab;
+    private ArcController arcInstance;
     public TriggerSensor connectorSensor;
     public TriggerSensor reactorSensor;
     private Material mat;
@@ -33,6 +36,11 @@ public class AudioReactor : MonoBehaviour
         m_light = GetComponent<Light>();
         rb = GetComponent<Rigidbody>();
         mat.color = defaultColor;
+        if (GetComponent<VisualEffect>())
+        {
+            GetComponent<VisualEffect>().enabled = false;
+            GetComponent<VisualEffect>().enabled = true;
+        }
         if (connectorSensor)
         {
             connectorSensor.onTriggerEnter = OnReactorHover;
@@ -69,7 +77,7 @@ public class AudioReactor : MonoBehaviour
     {
         grabState = GrabbableState.Grabbing;
         if (currentParent) currentParent.RemoveChild(this);
-        PlayNote(false);
+        Activate(false);
 
     }
 
@@ -108,6 +116,10 @@ public class AudioReactor : MonoBehaviour
 
     public void OnReactorHover(GameObject other)
     {
+        Debug.Log("hover");
+        arcInstance = Instantiate(arcPrefab, transform, false);
+        arcInstance.SetOwner(transform);
+        arcInstance.SetTarget(other.transform);
         AudioReactor reactor = other.GetComponentInParent<AudioReactor>();
         if (reactor && grabState == GrabbableState.Grabbing)
         {
@@ -119,7 +131,11 @@ public class AudioReactor : MonoBehaviour
     public void OnReactorExit(GameObject other)
     {
         //parentTarget = null;
-
+        Debug.Log(connectorSensor.GetCount());
+        if(connectorSensor.GetCount() == 0)
+        {
+            Destroy(arcInstance.gameObject);
+        }
         //AudioReactor reactor = other.GetComponentInParent<AudioReactor>();
         //if (reactor && grabState == GrabbableState.Grabbing)
         //{
@@ -130,7 +146,7 @@ public class AudioReactor : MonoBehaviour
         //}
     }
 
-    public void PlayNote(bool _on)
+    public void Activate(bool _on)
     {
         if (_on)
         {
@@ -145,13 +161,12 @@ public class AudioReactor : MonoBehaviour
                 
             }
             AudioReactor[] children = GetComponentsInChildren<AudioReactor>();
-            Debug.Log(children.Length);
             foreach (AudioReactor child in GetComponentsInChildren<AudioReactor>())
             {
                 // prevent infinite recursion
                 if (child != this)
                 {
-                    child.PlayNote(true);
+                    child.Activate(true);
                 }
             }
             mat.color = playColor;
@@ -174,7 +189,7 @@ public class AudioReactor : MonoBehaviour
                 // prevent infinite recursion
                 if (child != this)
                 {
-                    child.PlayNote(false);
+                    child.Activate(false);
                 }
             }
             if (mat)
