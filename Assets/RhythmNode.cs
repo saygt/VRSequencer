@@ -61,7 +61,7 @@ public class RhythmNode : BaseNode
         vfx.SetFloat("scale", 0.2F);
         DOTween.Sequence()
             .Append(DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), 0.9f, pulseDuration).SetEase(Ease.OutCubic))
-            .Append(DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), 0.2f, durationInSeconds + 0.2f).SetEase(Ease.InCubic))
+            .Append(DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), 0.2f, durationInSeconds - pulseDuration).SetEase(Ease.InCubic))
             ;
     }
 

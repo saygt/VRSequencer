@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine.Experimental.VFX;
+using DG.Tweening;
 
 public class BaseNode : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class BaseNode : MonoBehaviour
     public AudioHelm.Sampler sampler;
     public AudioHelm.HelmController helm;
     public ArcController arcPrefab;
+    public Button[] buttons;
 
     public Color defaultColor;
     public Color hoverColor;
@@ -37,11 +39,13 @@ public class BaseNode : MonoBehaviour
     private Type connectType;
     private AudioReactor currentParent;
     internal bool isActivated;
+    private float seed;
 
     // Use this for initialization
     private void Start()
     {
         OnStart();
+        seed = gameObject.GetInstanceID() * 0.01f;
         if (connectorSensor)
         {
             //connectorSensor.onTriggerEnter = OnReactorHover;
@@ -89,6 +93,9 @@ public class BaseNode : MonoBehaviour
                 }
             }
         }
+
+        float swayAmount = Mathf.Sin(Time.timeSinceLevelLoad + seed )*0.01f * Time.deltaTime;
+        transform.position = new Vector3(transform.position.x, transform.position.y + swayAmount, transform.position.z);
         // check for required ray instance
     }
 
@@ -154,12 +161,22 @@ public class BaseNode : MonoBehaviour
 
     }
 
-    public virtual void NextOption()
+    public virtual void RightAction()
     {
 
     }
 
-    public virtual void PrevOption()
+    public virtual void LeftAction()
+    {
+
+    }
+
+    public virtual void UpAction()
+    {
+
+    }
+
+    public virtual void DownAction()
     {
 
     }
@@ -211,6 +228,11 @@ public class BaseNode : MonoBehaviour
     {
         isActivated = false;
         vfx.SetInt("Mode", 0);
+
+    }
+
+    public virtual void SendEvent( string _eventName )
+    {
 
     }
 

@@ -10,15 +10,20 @@ public class ControllerManager : MonoBehaviour
     public SteamVR_Behaviour_Pose controllerPose;
     public SteamVR_Action_Boolean grabAction;
     public SteamVR_Action_Boolean copyAction;
-    public SteamVR_Action_Boolean nextItemAction;
-    public SteamVR_Action_Boolean prevItemAction;
-    public TriggerSensor grabSensor;
+    public SteamVR_Action_Vector2 scrollAction;
+    public SteamVR_Action_Boolean selectRightAction;
+    public SteamVR_Action_Boolean selectLeftAction;
+    public SteamVR_Action_Boolean selectUpAction;
+    public SteamVR_Action_Boolean selectDownAction;
+    public PointerController pointer;
     public Action onUpdate = () => {};
     private GameObject objectInHand; // 2
-    private BaseNode hoveringNode;
+    private BaseNode selectedNode;
+    private Button selectedButton;
     private BaseNode grabbedNode;
     private Vector3 grabOffsetPosition;
     private Quaternion grabOffsetRotation;
+    private float initialTouchAngle;
     // Start is called before the first frame update
     void Start()
     {
@@ -28,26 +33,70 @@ public class ControllerManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        CheckForHoveringObject();
-        if(hoveringNode)
+        onUpdate();
+
+        GetSelectedButton();
+        if(selectedButton)
         {
             if (grabAction.GetLastStateDown(handType))
             {
-                Grab(hoveringNode);
+                Button _button = pointer.GetSelectedButton();
+                if (_button)
+                {
+                    _button.Activate();
+                }
+            }
+            return;
+        }
+        GetSelectedNode();
+        if (selectedNode )
+        {
+            if (grabAction.GetLastStateDown(handType))
+            {
+                Button _button = pointer.GetSelectedButton();
+                if (_button)
+                {
+                    _button.Activate();
+                }
+                Grab(selectedNode);
             }
             if (copyAction.GetLastStateDown(handType))
             {
-                BaseNode _node = hoveringNode.Duplicate();
+                BaseNode _node = selectedNode.Duplicate();
                 Grab(_node);
             }
-            if (nextItemAction.GetLastStateDown(handType))
+            if (selectRightAction.GetLastStateDown(handType))
             {
-                hoveringNode.NextOption();
+                selectedNode.RightAction();
+
             }
-            if (prevItemAction.GetLastStateDown(handType))
+            if (selectLeftAction.GetLastStateDown(handType))
             {
-                hoveringNode.PrevOption();
+                selectedNode.LeftAction();
+
             }
+            if (selectUpAction.GetLastStateDown(handType))
+            {
+                selectedNode.UpAction();
+            }
+            if (selectDownAction.GetLastStateDown(handType))
+            {
+                selectedNode.DownAction();
+            }
+            if(scrollAction.GetAxis(handType) != Vector2.zero)
+            {
+                //Debug.Log(scrollAction.GetAxis(handType));
+            }
+ 
+            //if(scrollValue.y > 0)
+            //{
+            //    hoveringNode.RightAction();
+            //}
+            //else if(scrollValue.y < 0)
+            //{
+            //    hoveringNode.LeftAction();
+            //}
+
         }
 
         if (copyAction.GetLastStateUp(handType))
@@ -66,35 +115,64 @@ public class ControllerManager : MonoBehaviour
             }
             
         }
-        onUpdate();
     }
 
-    private void CheckForHoveringObject()
+    private void GetSelectedButton()
     {
-        if( grabSensor.GetCount(typeof(BaseNode)) > 0 )
+        Button _selectedButton = pointer.GetSelectedButton();
+        if (_selectedButton)
         {
-            BaseNode _node = grabSensor.GetClosest(transform.position, typeof(BaseNode)).GetComponentInParent<BaseNode>();
-            if (hoveringNode)
+            if (selectedButton)
             {
                 // if hovering closer to a different node
-                if (_node != hoveringNode)
+                if (_selectedButton != selectedButton)
                 {
-                    hoveringNode.Deselect();
+                    selectedButton.Deselect();
                 }
                 else
                 {
                     return;
                 }
             }
-            _node.Select();
-            hoveringNode = _node;
+            _selectedButton.Select();
+            selectedButton = _selectedButton;
         }
         else
         {
-            if(hoveringNode)
+            if (selectedButton)
             {
-                hoveringNode.Deselect();
-                hoveringNode = null;
+                selectedButton.Deselect();
+                selectedButton = null;
+            }
+        }
+    }
+
+    private void GetSelectedNode()
+    {
+        BaseNode _selectTarget = pointer.GetSelectedTarget();
+        if( _selectTarget )
+        {
+            if (selectedNode)
+            {
+                // if hovering closer to a different node
+                if (_selectTarget != selectedNode)
+                {
+                    selectedNode.Deselect();
+                }
+                else
+                {
+                    return;
+                }
+            }
+            _selectTarget.Select();
+            selectedNode = _selectTarget;
+        }
+        else
+        {
+            if(selectedNode)
+            {
+                selectedNode.Deselect();
+                selectedNode = null;
             }
         }
     }
@@ -111,6 +189,7 @@ public class ControllerManager : MonoBehaviour
 
     public void Grab(BaseNode target)
     {
+        pointer.Lock(true);
         grabbedNode = target;
         if(grabbedNode)
         {
@@ -125,6 +204,7 @@ public class ControllerManager : MonoBehaviour
 
     public void Release(GameObject target)
     {
+        pointer.Lock(false);
         onUpdate = delegate { };
         target.transform.SetParent(null);
         grabbedNode.Release();
@@ -136,5 +216,16 @@ public class ControllerManager : MonoBehaviour
     {
         grabbedNode.GetComponent<Rigidbody>().MovePosition( transform.position + grabOffsetPosition);
         grabbedNode.GetComponent<Rigidbody>().MoveRotation( transform.rotation * grabOffsetRotation);
+    }
+}
+
+public static class _Vector2
+{
+    public static float AngleTo(this Vector2 this_, Vector2 to)
+    {
+        Vector2 direction = to - this_;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        if (angle < 0f) angle += 360f;
+        return angle;
     }
 }

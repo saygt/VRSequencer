@@ -24,9 +24,21 @@ public class InstrumentVFXController : MonoBehaviour
     public Texture2D noteFs;
     public Texture2D noteG;
     public Texture2D noteGs;
-    public Texture2D sharpSymbol;
+
+    public Texture2D octave1;
+    public Texture2D octave2;
+    public Texture2D octave3;
+    public Texture2D octave4;
+    public Texture2D octave5;
+    public Texture2D octave6;
+    public Texture2D octave7;
+    public Texture2D octave8;
+
+
     private InstrumentNode.Note note;
+    private int octave;
     private Texture2D currentTexture;
+    private Texture2D octaveTexture;
     // Start is called before the first frame update
     void Start()
     {
@@ -39,9 +51,10 @@ public class InstrumentVFXController : MonoBehaviour
         
     }
 
-    public void ChangeNote(InstrumentNode.Note _note)
+    public void ChangeNote(InstrumentNode.Note _note, int _octave)
     {
         note = _note;
+        octave = _octave;
         UpdateNote();
     }
 
@@ -52,65 +65,89 @@ public class InstrumentVFXController : MonoBehaviour
 
     public void Deactivate()
     {
-        DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), idleScale, activationDuration);
+        DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), idleScale, activationDuration*1.8f);
+    }
+
+    public void Pulsate( float _toScale )
+    {
+        DOTween.Sequence().Append(DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), idleScale * _toScale, activationDuration)).Append(DOTween.To(() => vfx.GetFloat("scale"), x => vfx.SetFloat("scale", x), idleScale, activationDuration));
     }
 
     private void UpdateNote()
     { 
         switch(note)
         {
-            case InstrumentNode.Note.A3:
-            case InstrumentNode.Note.A4:
+            case InstrumentNode.Note.A:
                 currentTexture = noteA;
                 break;
-            case InstrumentNode.Note.As3:
-            case InstrumentNode.Note.As4:
+            case InstrumentNode.Note.As:
                 currentTexture = noteAs;
                 break;
-            case InstrumentNode.Note.B3:
-            case InstrumentNode.Note.B4:
+            case InstrumentNode.Note.B:
                 currentTexture = noteB;
                 break;
-            case InstrumentNode.Note.C3:
-            case InstrumentNode.Note.C4:
+            case InstrumentNode.Note.C:
                 currentTexture = noteC;
                 break;
-            case InstrumentNode.Note.Cs3:
-            case InstrumentNode.Note.Cs4:
+            case InstrumentNode.Note.Cs:
                 currentTexture = noteCs;
                 break;
-            case InstrumentNode.Note.D3:
-            case InstrumentNode.Note.D4:
+            case InstrumentNode.Note.D:
                 currentTexture = noteD;
                 break;
-            case InstrumentNode.Note.Ds3:
-            case InstrumentNode.Note.Ds4:
+            case InstrumentNode.Note.Ds:
                 currentTexture = noteDs;
                 break;
-            case InstrumentNode.Note.E3:
-            case InstrumentNode.Note.E4:
+            case InstrumentNode.Note.E:
                 currentTexture = noteE;
                 break;
-            case InstrumentNode.Note.F3:
-            case InstrumentNode.Note.F4:
+            case InstrumentNode.Note.F:
                 currentTexture = noteF;
                 break;
-            case InstrumentNode.Note.Fs3:
-            case InstrumentNode.Note.Fs4:
+            case InstrumentNode.Note.Fs:
                 currentTexture = noteFs;
                 break;
-            case InstrumentNode.Note.G3:
-            case InstrumentNode.Note.G4:
+            case InstrumentNode.Note.G:
                 currentTexture = noteG;
                 break;
-            case InstrumentNode.Note.Gs3:
-            case InstrumentNode.Note.Gs4:
+            case InstrumentNode.Note.Gs:
                 currentTexture = noteGs;
                 break;
             default:
                 currentTexture = noteA;
                 break;
         }
+        switch (octave)
+        {
+            case 1:
+                octaveTexture = octave1;
+                break;
+            case 2:
+                octaveTexture = octave2;
+                break;
+            case 3:
+                octaveTexture = octave3;
+                break;
+            case 4:
+                octaveTexture = octave4;
+                break;
+            case 5:
+                octaveTexture = octave5;
+                break;
+            case 6:
+                octaveTexture = octave6;
+                break;
+            case 7:
+                octaveTexture = octave7;
+                break;
+            case 8:
+                octaveTexture = octave8;
+                break;
+            default:
+                octaveTexture = octave1;
+                break;
+        }
         vfx.SetTexture("Texture", currentTexture);
+        vfx.SetTexture("OctaveTexture", octaveTexture);
     }
 }

@@ -41,12 +41,24 @@
       "requirement": "optional"
     },
     {
-      "name": "/actions/default/in/NextItem",
+      "name": "/actions/default/in/SelectRight",
       "type": "boolean"
     },
     {
-      "name": "/actions/default/in/PreviousItem",
+      "name": "/actions/default/in/SelectLeft",
       "type": "boolean"
+    },
+    {
+      "name": "/actions/default/in/SelectUp",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/default/in/SelectDown",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/default/in/Dial",
+      "type": "vector2"
     },
     {
       "name": "/actions/default/out/Haptic",

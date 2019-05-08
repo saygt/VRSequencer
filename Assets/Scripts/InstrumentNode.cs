@@ -2,46 +2,111 @@
 using System.Collections;
 using DG.Tweening;
 using System;
+using AudioHelm;
+using System.Collections.Generic;
 
 public class InstrumentNode : BaseNode
 {
-    public enum Note { C3, Cs3, D3, Ds3, E3, F3, Fs3, G3, Gs3, A3, As3, B3, C4, Cs4, D4, Ds4, E4, F4, Fs4, G4, Gs4, A4, As4, B4}
+    public bool useSampler;
+    public enum Note { C, Cs, D, Ds, E, F, Fs, G, Gs, A, As, B}
+    [Range(1,8)]
+    public int octave;
+    private int lastOctave;
     private Note lastNote;
     public Note note;
     public int pitch;
     public InstrumentVFXController vfxController;
+    public List<Sampler> samplers;
+    public List<HelmController> helmInstances;
+    public List<Color> instrumentColors;
+    private Color currentColor;
+    private int helmChannel;
 
     internal override void OnUpdate()
     {
         base.OnUpdate();
-        if(lastNote != note)
+        if(lastNote != note || lastOctave != octave)
         {
-            ChangePitch(note);
+            ChangePitch(note, octave);
             lastNote = note;
+            lastOctave = octave;
         }
     }
 
     internal override void OnStart()
     {
         base.OnStart();
-        ChangePitch(note);
+        ChangePitch(note, octave);
         lastNote = note;
+        lastOctave = octave;
+        buttons = GetComponentsInChildren<Button>();
     }
 
-    public override void NextOption()
+    public override void RightAction()
     {
-        base.NextOption();
+        base.RightAction();
         int nextEnum = (int)note + 1;
-        if (nextEnum > Enum.GetNames(typeof(Note)).Length - 1) nextEnum = 0;
+        if (nextEnum > Enum.GetNames(typeof(Note)).Length - 1)
+        {
+            // if there is a higher octave, move up octave
+            if(octave < 8)
+            {
+                octave++;
+                nextEnum = 0;
+            }
+            else
+            {
+                return;
+            }
+        }
         note = (Note)nextEnum;
+        ChangePitch(note, octave);
+        vfxController.Pulsate(1.1f);
     }
 
-    public override void PrevOption()
+    public override void LeftAction()
     {
-        base.PrevOption();
+        base.LeftAction();
         int nextEnum = (int)note - 1;
-        if (nextEnum < 0) nextEnum = Enum.GetNames(typeof(Note)).Length - 1;
+        if (nextEnum < 0)
+        {
+            // if there is a lower octave , move down octave
+            if(octave > 1)
+            {
+                octave--;
+                nextEnum = Enum.GetNames(typeof(Note)).Length - 1;
+            }
+            else
+            {
+                return;
+            }
+        }
         note = (Note)nextEnum;
+        ChangePitch(note, octave);
+        vfxController.Pulsate(0.9f);
+    }
+
+    public override void UpAction()
+    {
+        base.UpAction();
+        if (octave < 8)
+        {
+            octave++;
+        }
+        ChangePitch(note, octave);
+        vfxController.Pulsate(1.1f);
+
+    }
+
+    public override void DownAction()
+    {
+        base.DownAction();
+        if (octave > 1)
+        {
+            octave--;
+        }
+        ChangePitch(note, octave);
+        vfxController.Pulsate(0.9f);
     }
 
     public override void Activate()
@@ -52,15 +117,13 @@ public class InstrumentNode : BaseNode
     public override void Activate( float _duration)
     {
         base.Activate();
-        if (helm)
+        if (!useSampler && helm)
         {
-
-            helm.NoteOn(pitch, 1.0f, _duration*0.95f);
+            helm.NoteOn(pitch, 1.0f, _duration * 0.99f);
         }
-        if (sampler)
+        if (useSampler && sampler)
         {
             sampler.NoteOn(pitch);
-
         }
         vfxController.Activate();
     }
@@ -76,8 +139,41 @@ public class InstrumentNode : BaseNode
         {
             //sampler.NoteOff();
         }
+
         vfxController.Deactivate();
 
+    }
+
+    public override void Select()
+    {
+        base.Select();
+        foreach (Button button in buttons)
+        {
+            button.Show();
+        }
+        PlaySample();
+    }
+
+    public override void Deselect()
+    {
+        foreach (Button button in buttons)
+        {
+            button.Hide();
+        }
+        base.Deselect();
+    }
+
+    private void PlaySample()
+    {
+        if ( !useSampler && helm)
+        {
+            helm.NoteOn(pitch, 1.0f, 0.5f);
+        }
+        if ( useSampler &&sampler)
+        {
+            sampler.NoteOn(pitch);
+        }
+        vfxController.Pulsate(1.1f);
     }
 
     public override BaseNode Duplicate()
@@ -89,9 +185,104 @@ public class InstrumentNode : BaseNode
         return _node;
     }
 
-    private void ChangePitch(Note _note)
+    private void ChangePitch(Note _note, int octave)
     {
-        pitch = (int)_note + 48;
-        vfxController.ChangeNote(_note);
+        pitch = 12*octave + (int)_note;
+        vfxController.ChangeNote(_note, octave);
+    }
+
+    public override void SendEvent(string _eventName)
+    {
+        base.SendEvent(_eventName);
+        switch(_eventName)
+        {
+            case "NextNote":
+                RightAction();
+                break;
+            case "PrevNote":
+                LeftAction();
+                break;
+            case "UpOctave":
+                UpAction();
+                break;
+            case "DownOctave":
+                DownAction();
+                break;
+            case "NextInstrument":
+                NextInstrument();
+                break;
+            case "PrevInstrument":
+                PrevInstrument();
+                break;
+            case "PlaySample":
+                PlaySample();
+                break;
+        }
+    }
+
+    private void PrevInstrument()
+    {
+        Debug.Log("prev instrument");
+        if(useSampler)
+        {
+            PrevSampler();
+            return;
+        }
+        helmChannel--;
+        if (helmChannel < 0)
+        {
+            helmChannel = helmInstances.Count - 1;
+        }
+        helm = helmInstances[helmChannel];
+        currentColor = instrumentColors[helmChannel];
+        vfx.SetVector4("BaseColor", currentColor);
+        PlaySample();
+    }
+
+    private void PrevSampler()
+    {
+        Debug.Log("prev sampler");
+        helmChannel--;
+        if (helmChannel < 0)
+        {
+            helmChannel = samplers.Count - 1;
+        }
+        sampler = samplers[helmChannel];
+        currentColor = instrumentColors[helmChannel];
+        vfx.SetVector4("BaseColor", currentColor);
+        PlaySample();
+    }
+
+    private void NextInstrument()
+    {
+        Debug.Log("Nex int");
+        if (useSampler)
+        {
+            NextSampler();
+            return;
+        }
+
+        helmChannel++;
+        if(helmChannel > helmInstances.Count-1)
+        {
+            helmChannel = 0;
+        }
+        helm = helmInstances[helmChannel];
+        currentColor = instrumentColors[helmChannel];
+        vfx.SetVector4("BaseColor", currentColor);
+        PlaySample();
+    }
+
+    private void NextSampler()
+    {
+        helmChannel++;
+        if (helmChannel > samplers.Count - 1)
+        {
+            helmChannel = 0;
+        }
+        sampler = samplers[helmChannel];
+        currentColor = instrumentColors[helmChannel];
+        vfx.SetVector4("BaseColor", currentColor);
+        PlaySample();
     }
 }

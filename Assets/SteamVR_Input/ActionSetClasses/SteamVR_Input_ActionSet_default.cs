@@ -89,19 +89,43 @@ namespace Valve.VR
             }
         }
         
-        public virtual SteamVR_Action_Boolean NextItem
+        public virtual SteamVR_Action_Boolean SelectRight
         {
             get
             {
-                return SteamVR_Actions.default_NextItem;
+                return SteamVR_Actions.default_SelectRight;
             }
         }
         
-        public virtual SteamVR_Action_Boolean PreviousItem
+        public virtual SteamVR_Action_Boolean SelectLeft
         {
             get
             {
-                return SteamVR_Actions.default_PreviousItem;
+                return SteamVR_Actions.default_SelectLeft;
+            }
+        }
+        
+        public virtual SteamVR_Action_Boolean SelectUp
+        {
+            get
+            {
+                return SteamVR_Actions.default_SelectUp;
+            }
+        }
+        
+        public virtual SteamVR_Action_Boolean SelectDown
+        {
+            get
+            {
+                return SteamVR_Actions.default_SelectDown;
+            }
+        }
+        
+        public virtual SteamVR_Action_Vector2 Dial
+        {
+            get
+            {
+                return SteamVR_Actions.default_Dial;
             }
         }
         
