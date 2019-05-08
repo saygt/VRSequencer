@@ -5,7 +5,6 @@ using System;
 using UnityEngine.Experimental.VFX;
 using DG.Tweening;
 
-[RequireComponent(typeof(VisualEffect))]
 public class RhythmNode : BaseNode
 {
     public int duration = 1;
@@ -15,8 +14,7 @@ public class RhythmNode : BaseNode
     public int activationTick = 999999;
     public bool showDebug = false;
     public List<AudioReactor> audioNodes = new List<AudioReactor>();
-    public VisualEffect vfx;
-    public float vfxScale = 1f;
+    private List<InstrumentNode> activeInstruments = new List<InstrumentNode>();
 
     internal override void OnStart()
     {
@@ -24,37 +22,39 @@ public class RhythmNode : BaseNode
         DoOnTick = WaitForActivation;
         MusicManager.Instance.DoOnTick(OnTick);
         vfx = GetComponent<VisualEffect>();
+        if(!vfx)
+        {
+            vfx = GetComponentInChildren<VisualEffect>();
+        }
     }
 
     public override void Select()
     {
         base.Select();
-        vfx.SetInt("Mode", 1);
     }
 
     public override void Deselect()
     {
         base.Deselect();
-        vfx.SetInt("Mode", 0);
     }
 
     public override void Activate()
     {
         base.Activate();
-        foreach (BaseNode node in childNodes)
+        foreach (BaseNode _node in childNodes)
         {
-            if (node != this && node.GetType() == typeof(RhythmNode))
+            if (_node != this && _node.GetType() == typeof(RhythmNode))
             {
-                RhythmNode rhythmNode = node as RhythmNode;
+                RhythmNode rhythmNode = _node as RhythmNode;
                 rhythmNode.ActivateAtTick(MusicManager.Instance.CurrentTick() + duration);
+            }
+            if(_node != this && _node.GetType() == typeof(InstrumentNode))
+            {
+                _node.Activate(duration * MusicManager.Instance.TimePerTick());
+                activeInstruments.Add(_node as InstrumentNode);
             }
         }
 
-
-        foreach ( AudioReactor node in audioNodes)
-        {
-            node.Activate(true);
-        }
         DoOnTick = WaitForDeactivation;
         float durationInSeconds = MusicManager.Instance.TimePerTick()*duration;
         float pulseDuration = 0.2f;
@@ -85,10 +85,11 @@ public class RhythmNode : BaseNode
     public override void Deactivate()
     {
         base.Deactivate();
-        foreach (AudioReactor node in audioNodes)
+        foreach (InstrumentNode _node in activeInstruments)
         {
-            node.Activate(false);
+            _node.Deactivate();
         }
+        activeInstruments.Clear();
         currentTick = 1;
         DoOnTick = WaitForActivation;
     }

@@ -2,37 +2,39 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using UnityEngine.Experimental.VFX;
 
 public class BaseNode : MonoBehaviour
 {
+    public NodeTypes nodeType;
     public BaseNode parentTarget;
-
     public List<BaseNode> childNodes;
-    public Action<int> DoOnTick = delegate { };
-    public Action<int> DoBeforeTick = delegate { };
-
-
-    public bool canGrab = true;
+    public VisualEffect vfx;
+    public TriggerSensor connectorSensor;
+    public TriggerSensor grabSensor;
     public AudioHelm.Sampler sampler;
     public AudioHelm.HelmController helm;
     public ArcController arcPrefab;
-    private ArcController rayInstance;
-    public TriggerSensor connectorSensor;
-    public TriggerSensor grabSensor;
-    private Material mat;
-    private Light m_light;
-    private Rigidbody rb;
+
     public Color defaultColor;
     public Color hoverColor;
     public Color activeColor;
     public float lightIntensity = 0.5f;
-    public enum GrabbableState { Idle, Hovering, Grabbing }
+    public float vfxScale = 1f;
+
+    public bool canGrab = true;
     public GrabbableState grabState = GrabbableState.Idle;
 
-    public enum NodeTypes { Rhythm, Instrument, Chord}
-    public NodeTypes nodeType;
-    private Type connectType; 
+    public Action<int> DoOnTick = delegate { };
+    public Action<int> DoBeforeTick = delegate { };
 
+    private ArcController rayInstance;
+    private Material mat;
+    private Light m_light;
+    private Rigidbody rb;
+    public enum GrabbableState { Idle, Hovering, Grabbing }
+    public enum NodeTypes { Rhythm, Instrument, Chord}
+    private Type connectType;
     private AudioReactor currentParent;
     internal bool isActivated;
 
@@ -69,6 +71,7 @@ public class BaseNode : MonoBehaviour
 
     private void Update()
     {
+        OnUpdate();
         if (grabState == GrabbableState.Grabbing)
         {
             if (connectorSensor.GetCount(connectType) > 0)
@@ -86,8 +89,12 @@ public class BaseNode : MonoBehaviour
                 }
             }
         }
-
         // check for required ray instance
+    }
+
+    internal virtual void OnUpdate()
+    {
+
     }
 
     public virtual void ConnectToNode(BaseNode other)
@@ -129,6 +136,7 @@ public class BaseNode : MonoBehaviour
         }
         rayInstance.SetOwner(transform);
         rayInstance.SetTarget(target.transform);
+        rayInstance.vfx.Simulate(0.1f, 50);
     }
 
     public void AddChild( BaseNode _node)
@@ -146,14 +154,24 @@ public class BaseNode : MonoBehaviour
 
     }
 
-    public virtual void Select()
+    public virtual void NextOption()
     {
 
     }
 
-    public virtual void Deselect()
+    public virtual void PrevOption()
     {
 
+    }
+
+    public virtual void Select()
+    {
+        vfx.SetInt("Mode", 1);
+    }
+
+    public virtual void Deselect()
+    {
+        vfx.SetInt("Mode", 0);
     }
 
     public virtual void Grab()
@@ -170,6 +188,13 @@ public class BaseNode : MonoBehaviour
     public virtual void Activate()
     {
         isActivated = true;
+        vfx.SetInt("Mode", 2);
+
+    }
+
+    public virtual void Activate(float _duration)
+    {
+        Activate();
     }
 
     public void OnTick(int _tick)
@@ -185,6 +210,8 @@ public class BaseNode : MonoBehaviour
     public virtual void Deactivate()
     {
         isActivated = false;
+        vfx.SetInt("Mode", 0);
+
     }
 
 

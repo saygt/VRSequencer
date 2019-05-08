@@ -10,6 +10,8 @@ public class ControllerManager : MonoBehaviour
     public SteamVR_Behaviour_Pose controllerPose;
     public SteamVR_Action_Boolean grabAction;
     public SteamVR_Action_Boolean copyAction;
+    public SteamVR_Action_Boolean nextItemAction;
+    public SteamVR_Action_Boolean prevItemAction;
     public TriggerSensor grabSensor;
     public Action onUpdate = () => {};
     private GameObject objectInHand; // 2
@@ -27,20 +29,24 @@ public class ControllerManager : MonoBehaviour
     void Update()
     {
         CheckForHoveringObject();
-        if (grabAction.GetLastStateDown(handType))
+        if(hoveringNode)
         {
-            if(hoveringNode)
+            if (grabAction.GetLastStateDown(handType))
             {
                 Grab(hoveringNode);
             }
-        }
-
-        if (copyAction.GetLastStateDown(handType))
-        {
-            if(hoveringNode)
+            if (copyAction.GetLastStateDown(handType))
             {
                 BaseNode _node = hoveringNode.Duplicate();
                 Grab(_node);
+            }
+            if (nextItemAction.GetLastStateDown(handType))
+            {
+                hoveringNode.NextOption();
+            }
+            if (prevItemAction.GetLastStateDown(handType))
+            {
+                hoveringNode.PrevOption();
             }
         }
 
@@ -54,7 +60,11 @@ public class ControllerManager : MonoBehaviour
         // 2
         if (grabAction.GetLastStateUp(handType))
         {
-            Release(grabbedNode.gameObject);
+            if(grabbedNode)
+            {
+                Release(grabbedNode.gameObject);
+            }
+            
         }
         onUpdate();
     }
@@ -117,7 +127,7 @@ public class ControllerManager : MonoBehaviour
     {
         onUpdate = delegate { };
         target.transform.SetParent(null);
-       // grabbedReactor.Release();
+        grabbedNode.Release();
         grabbedNode = null;
 
     }
