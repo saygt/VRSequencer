@@ -55,6 +55,10 @@ public class Button : MonoBehaviour
 
     public void Activate()
     {
+        if(!parentNode)
+        {
+            MusicManager.Instance.SendEvent(eventName);
+        }
         parentNode.SendEvent(eventName);
         parentNode.SendEvent("PlaySample");
         if (mat)

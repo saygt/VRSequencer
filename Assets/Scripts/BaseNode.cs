@@ -30,7 +30,7 @@ public class BaseNode : MonoBehaviour
     public Action<int> DoOnTick = delegate { };
     public Action<int> DoBeforeTick = delegate { };
 
-    private ArcController rayInstance;
+    public ArcController rayInstance;
     private Material mat;
     private Light m_light;
     private Rigidbody rb;
@@ -94,8 +94,8 @@ public class BaseNode : MonoBehaviour
             }
         }
 
-        float swayAmount = Mathf.Sin(Time.timeSinceLevelLoad + seed )*0.01f * Time.deltaTime;
-        transform.position = new Vector3(transform.position.x, transform.position.y + swayAmount, transform.position.z);
+        //float swayAmount = Mathf.Sin(Time.timeSinceLevelLoad + seed )*0.01f * Time.deltaTime;
+      //  transform.position = new Vector3(transform.position.x, transform.position.y + swayAmount, transform.position.z);
         // check for required ray instance
     }
 
@@ -227,7 +227,7 @@ public class BaseNode : MonoBehaviour
     public virtual void Deactivate()
     {
         isActivated = false;
-        vfx.SetInt("Mode", 0);
+        if(vfx) vfx.SetInt("Mode", 0);
 
     }
 

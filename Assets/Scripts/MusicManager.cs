@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MusicManager : Singleton<MusicManager>
 {
@@ -54,5 +55,20 @@ public class MusicManager : Singleton<MusicManager>
     public float TimePerTick()
     {
         return timePerTick;
+    }
+
+    private void Restart()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    public void SendEvent( string _eventName)
+    {
+        switch(_eventName)
+        {
+            case "Restart":
+                Restart();
+                break;
+        }
     }
 }

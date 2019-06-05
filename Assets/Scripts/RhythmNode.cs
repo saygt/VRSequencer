@@ -69,6 +69,7 @@ public class RhythmNode : BaseNode
     {
 
         RhythmNode _node = Instantiate(gameObject, transform.position, transform.rotation).GetComponent<RhythmNode>();
+        _node.rayInstance = null;
         _node.childNodes.Clear();
         _node.activationTick = 9999999;
         _node.Deactivate();
@@ -119,7 +120,6 @@ public class RhythmNode : BaseNode
 
         if( _tick == activationTick )
         {
-            Debug.Log("tick activate:" + gameObject.name);
             Activate();
             return;
         }
@@ -130,7 +130,6 @@ public class RhythmNode : BaseNode
             BaseNode activeChild = GetFirstActiveChild(this);
             if( activeChild == null )
             {
-                Debug.Log("self activate:" + gameObject.name);
                 Activate();
             }
         }
@@ -141,7 +140,6 @@ public class RhythmNode : BaseNode
     {
         foreach( BaseNode child in _node.childNodes)
         {
-            Debug.Log("recursive search by" + gameObject.name + ":" + child.gameObject.name);
             if (child.isActivated)
             {
                 return child;
@@ -155,7 +153,6 @@ public class RhythmNode : BaseNode
                 }
             }
         }
-        Debug.Log("no active child");
         return null;
     }
 }

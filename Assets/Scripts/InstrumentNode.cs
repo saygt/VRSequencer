@@ -179,6 +179,7 @@ public class InstrumentNode : BaseNode
     public override BaseNode Duplicate()
     {
         InstrumentNode _node = Instantiate(gameObject, transform.position, transform.rotation).GetComponent<InstrumentNode>();
+        _node.rayInstance = null;
         _node.childNodes.Clear();
         _node.Deactivate();
         _node.parentTarget = this;
@@ -217,12 +218,14 @@ public class InstrumentNode : BaseNode
             case "PlaySample":
                 PlaySample();
                 break;
+            case "Delete":
+                Die();
+                break;
         }
     }
 
     private void PrevInstrument()
     {
-        Debug.Log("prev instrument");
         if(useSampler)
         {
             PrevSampler();
@@ -255,7 +258,6 @@ public class InstrumentNode : BaseNode
 
     private void NextInstrument()
     {
-        Debug.Log("Nex int");
         if (useSampler)
         {
             NextSampler();
@@ -284,5 +286,18 @@ public class InstrumentNode : BaseNode
         currentColor = instrumentColors[helmChannel];
         vfx.SetVector4("BaseColor", currentColor);
         PlaySample();
+    }
+
+    private void Die()
+    {
+        if(parentTarget)
+        {
+            parentTarget.RemoveChild(this);
+        }
+        if(rayInstance)
+        {
+            Destroy(rayInstance.gameObject);
+        }
+        DOTween.Sequence().Append(transform.DOScale(0, 0.5f)).OnComplete(() => Destroy(gameObject));
     }
 }

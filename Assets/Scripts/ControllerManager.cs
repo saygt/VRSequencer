@@ -46,6 +46,7 @@ public class ControllerManager : MonoBehaviour
                     _button.Activate();
                 }
             }
+            Debug.Log("1");
             return;
         }
         GetSelectedNode();
@@ -101,8 +102,10 @@ public class ControllerManager : MonoBehaviour
 
         if (copyAction.GetLastStateUp(handType))
         {
-
+            if (grabbedNode)
+            {
                 Release(grabbedNode.gameObject);
+            }
 
         }
 
